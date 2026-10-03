@@ -1,0 +1,65 @@
+=======================================================
+PANDUAN PROMPT UNTUK ANDROID STUDIO & AI (Gemini/ChatGPT)
+(Versi Super Detail - Sesuai WebApp Saat Ini)
+=======================================================
+
+Halo! File ini dibuat khusus untuk memandu Anda membangun ulang aplikasi
+Google Apps Script Anda menjadi aplikasi Android Native menggunakan Kotlin,
+Jetpack Compose, dan Firebase Firestore agar hasilnya SAMA PERSIS dengan WebApp.
+
+CARA MENGGUNAKAN:
+1. Buat proyek baru di Android Studio dengan template "Empty Activity (Jetpack Compose)".
+2. Copy-paste blok prompt di bawah ini satu per satu kepada AI asisten Anda.
+3. Jangan melompat ke tahap berikutnya sebelum kode tahap saat ini berhasil dijalankan (Run).
+
+=======================================================
+TAHAP 1: SETUP DATABASE & MODEL (FIRESTORE) SANGAT DETAIL
+=======================================================
+Saya sedang membangun aplikasi Manajemen Tagihan Internet berbasis Android Native (Kotlin). Tolong buatkan rancangan Firebase Cloud Firestore menggunakan Kotlin Data Class (berikan anotasi @DocumentId). Aplikasi ini harus persis dengan versi WebApp sebelumnya. Buatkan 5 struktur Data Class berikut:
+1. `User`: field -> `username` (String), `pin` (String), `role` (String: "Admin" atau "Tukang Tagih").
+2. `Pelanggan`: field -> `id` (String), `nama` (String), `alamat` (String), `noHp` (String), `paket` (String), `tanggalDaftar` (String/Date), `statusAktif` (String: "Aktif" atau "Nonaktif").
+3. `Paket`: field -> `id` (String), `nama` (String), `nominal` (Int/Double).
+4. `Tagihan`: field -> `id` (String), `idPelanggan` (String), `namaPelanggan` (String), `bulan` (String), `tahun` (String), `nominal` (Int/Double), `status` (String: "Belum Bayar", "Lunas", "Menunggak", "Double", "Double Hutang"), `tanggalBayar` (String), `ditagihOleh` (String), `keterangan` (String).
+5. `Pengaturan`: field -> `bulanAktif` (String), `tahunAktif` (String).
+Tolong berikan kode Data Class-nya lengkap.
+
+=======================================================
+TAHAP 2: TEMA (THEME) & DESAIN KACA (GLASSMORPHISM) SPESIFIK
+=======================================================
+Gunakan Jetpack Compose. Buatkan file `Color.kt` dan `Theme.kt`. Tampilan aplikasi saya bernuansa malam (Dark Mode) tanpa background putih. Background utama layar gunakan warna gelap (contoh: Slate/Indigo sangat gelap #0F172A). Sediakan juga palet warna statis: Emerald (#10B981) untuk sukses/lunas, Rose (#F43F5E) untuk menunggak/hapus, Amber (#F59E0B) untuk belum bayar, Indigo (#6366F1) untuk double bayar.
+Selanjutnya, buatkan `@Composable GlassCard` dan `@Composable GlassInput`. Agar efek kacanya (Glassmorphism) mirip Tailwind, gunakan `Modifier.clip(RoundedCornerShape(24.dp))`, lalu beri warna `Color.White.copy(alpha = 0.05f)` sebagai background, dan border `1.dp` dengan `Color.White.copy(alpha = 0.1f)`. Untuk GlassInput, sesuaikan agar cocok digunakan sebagai TextField transparan.
+
+=======================================================
+TAHAP 3: HALAMAN LOGIN & AUTENTIKASI PIN
+=======================================================
+Buatkan `@Composable LoginScreen` menggunakan `GlassCard`. Halaman ini memiliki dua input (`GlassInput`): Username dan PIN. Tambahkan sebuah tombol besar berwarna Emerald bertuliskan "Masuk". Di belakang UI, berikan dua buah `Box` berbentuk lingkaran (satu warna Emerald, satu Indigo) dengan efek blur (`Modifier.blur(100.dp)`) untuk aksen abstrak.
+Buatkan `LoginViewModel` dengan StateFlow yang mengecek input user ke koleksi "users" di Firestore. Jika kombinasi username dan pin cocok, periksa "role"-nya. Jika role "Admin", arahkan ke `AdminScreen`, jika "Tukang Tagih", arahkan ke `PenagihScreen`.
+
+=======================================================
+TAHAP 4: DASHBOARD ADMIN & NAVIGASI BAWAH
+=======================================================
+Buatkan `@Composable AdminMainScreen` dengan `Scaffold`. Navigasi bawah menggunakan `NavigationBar` bertema transparan yang memiliki 4 tab: Beranda (Dashboard), Pelanggan, Tagihan, Pengaturan.
+Untuk "Beranda", buatkan UI ringkasan yang menampilkan 3 GlassCard berisi data secara real-time dari Firestore:
+1. Total Pendapatan (Sum nominal tagihan yang berstatus "Lunas" atau "Double" dikali dua).
+2. Jumlah Pelanggan Aktif dan Nonaktif (Ambil dari koleksi Pelanggan).
+3. Tagihan Belum Lunas (Ambil dari koleksi Tagihan dengan status "Belum Bayar", "Menunggak", "Double Hutang").
+Beri tombol di bawah dashboard "Buat Tagihan Massal" yang jika diklik akan memanggil logika Firestore Batch Write untuk menambahkan tagihan baru bagi semua pelanggan "Aktif" di bulan dan tahun aktif.
+
+=======================================================
+TAHAP 5: LIST PELANGGAN & TAGIHAN (ADMIN) DENGAN PENCARIAN
+=======================================================
+Buatkan `@Composable PelangganScreen` dan `TagihanScreen` untuk Admin.
+Kedua halaman menggunakan `LazyColumn` dan ditarik real-time dari Firestore menggunakan `snapshotFlow`.
+Di paling atas ada TextField pencarian nama/alamat. Di bawah TextField, ada Row berisi Scrollable Filter Chips (contoh di Tagihan: "Semua", "Belum Bayar", "Lunas", "Menunggak", "Double").
+Pada tiap `Card` Tagihan, berikan ikon tombol "Edit" dan "Hapus". Jika "Edit" diklik, buka `ModalBottomSheet` yang menampilkan dropdown/radio button berisi 5 pilihan status tagihan. Jika admin menyimpan perubahan, update dokumen tagihan tersebut di Firestore. Sertakan juga tombol "Kirim Nota WA" menggunakan Intent action view ke `https://api.whatsapp.com/send?phone=...`. Pastikan ubah angka 0 di awal no HP menjadi 62.
+
+=======================================================
+TAHAP 6: LAYAR TUKANG TAGIH & UI BOTTOM SHEET PEMBAYARAN
+=======================================================
+Buatkan `@Composable TukangTagihScreen`. Halaman ini hanya merender Tagihan yang berada pada `bulanAktif` dan `tahunAktif`.
+Di bagian atas, tampilkan ringkasan setoran khusus untuk username penagih ini (Total Uang, Rumah Ditagih, Belum Lunas, Bayar Double). Di bawahnya, buatkan list tagihan dengan TextField pencarian.
+Setiap tagihan yang berstatus 'Belum Bayar' dsb ditampilkan sebagai kartu yang bisa diklik. Jika kartu diklik, buka `ModalBottomSheet` yang berisi:
+1. Info Nama, Nominal, dan Bulan/Tahun.
+2. Tiga tombol besar ke bawah: "Bayar Lunas" (Hijau), "Bayar Double (2 Bulan)" (Indigo), "Hubungi / Ingatkan via WhatsApp".
+3. Dua tombol bersebelahan (Grid) lebih kecil di bawahnya: "Tidak Membayar/Menunggak" (Merah) dan "Double Hutang" (Oranye).
+Setiap tombol aksi tersebut akan langsung meng-update field status tagihan terkait di Firestore beserta `tanggalBayar` dan `ditagihOleh` (nama penagih yang login).

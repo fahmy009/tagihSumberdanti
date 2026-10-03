@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "948946247259",
+    "project_id": "tagihsumberdanti",
+    "storage_bucket": "tagihsumberdanti.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:948946247259:android:42052fe75b01096773697e",
+        "android_client_info": {
+          "package_name": "com.example.tagihsumberdanti"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2EdqaNfbk4NG2G2Z9Xn4D73jEWXmD0_w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
